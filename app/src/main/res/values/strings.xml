@@ -1,5 +1,10 @@
 <resources>
     <string name="app_name">Note</string>
-    <string name="NEW">NEW</string>
+    <string name="NEW">Apply</string>
     <string name="SAVE">SAVE</string>
+    <string name="filenameform">title</string>
+    <string name="sort">Sort</string>
+    <string name="menu_sort">Sort</string>
+    <string name="menu_sort_newest">newest</string>
+    <string name="menu_sort_lastest">date(new)</string>
 </resources>

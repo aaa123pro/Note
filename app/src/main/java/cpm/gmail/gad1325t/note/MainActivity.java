@@ -1,5 +1,6 @@
 package cpm.gmail.gad1325t.note;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.DialogFragment;
 
@@ -7,6 +8,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -23,12 +26,14 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 
 public class MainActivity extends AppCompatActivity {
 
     //配列アダプター
     ArrayAdapter<String>adapter;
-
+    final ArrayList<String> data=new ArrayList<>();
     //EXTRA_TXT
     public static final String EXTRA_TXT="cpm.gmail.gad1325t.memo.EXTRA_TXT";
     @Override
@@ -41,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent=new Intent(getApplicationContext(),SubActivity.class);
+                Intent intent=new Intent(getApplicationContext(), FilenameForm.class);
                 startActivity(intent);
             }
         });
@@ -50,10 +55,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-        //リスト
-        final ArrayList<String> data=new ArrayList<>();
         String str;
-
+        data.clear();
         try(FileInputStream fileInputStream=openFileInput("filename.txt");
             BufferedReader reader=new BufferedReader(new InputStreamReader(fileInputStream, StandardCharsets.UTF_8))
         ){
@@ -65,9 +68,11 @@ public class MainActivity extends AppCompatActivity {
         }
 
         //配列アダプターListview用
+        String[] listdata=data.toArray(new String[data.size()]);
         adapter=new ArrayAdapter<>(this,android.R.layout.simple_list_item_1,data);
         ListView list=findViewById(R.id.listView);
         list.setAdapter(adapter);
+        Log.i("list","onresume");
 
         //listClicked
         list.setOnItemClickListener(
@@ -102,6 +107,48 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
         );
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main,menu);
+        return true;
+    }
+
+    //onSelectOptions
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+
+
+        ListView list=findViewById(R.id.listView);
+
+
+        switch (item.getItemId()){
+            case R.id.menu_sort_newest:
+                String[] listdata=data.toArray(new String[data.size()]);
+                Arrays.sort(listdata);
+                adapter=new ArrayAdapter<>(this, android.R.layout.simple_list_item_1,listdata);
+                Log.i("list","select");
+                list.setAdapter(adapter);
+                return true;
+            case R.id.menu_sort_lastest:
+                listdata=data.toArray(new String[data.size()]);
+                ArrayList<Dataset> datasets=new ArrayList<>();
+
+                for(String str: listdata){
+                    String[] st= str.split("     ",0);
+                    datasets.add(new Dataset(st[0],st[1]));
+                }
+                Collections.sort(datasets,new DatasetComparator());
+                ArrayList<String> keydata=new ArrayList<>();
+                for(Dataset dataset:datasets){
+                    keydata.add(dataset.getName()+dataset.getTime());
+                }
+                adapter=new ArrayAdapter<>(this, android.R.layout.simple_list_item_1,keydata);
+                list.setAdapter(adapter);
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     //ファイル読み込み
